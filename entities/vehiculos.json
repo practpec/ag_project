@@ -1,61 +1,26 @@
 [
   {
-    "categoria": "Alimentación básica",
-    "subcategorias": [
-      "Granos y cereales",
-      "Proteínas enlatadas/secas",
-      "Aceites y grasas",
-      "Lácteos deshidratados",
-      "Endulzantes y condimentos"
-    ],
-    "peso_unitario_kg": 10
+    "id": 1,
+    "modelo": "Corolla",
+    "tipo": "auto",
+    "velocidad_kmh": 50,
+    "consumo_litros_km": 0.5,
+    "maximo_peso_ton": 1.5
   },
   {
-    "categoria": "Higiene y cuidado personal",
-    "subcategorias": [
-      "Jabones y shampoo",
-      "Salud bucal",
-      "Protección femenina e infantil",
-      "Artículos de aseo personal"
-    ],
-    "peso_unitario_kg": 5
+    "id": 2,
+    "modelo": "Hilux",
+    "tipo": "camion",
+    "velocidad_kmh": 60,
+    "consumo_litros_km": 0.7,
+    "maximo_peso_ton": 2.5
   },
   {
-    "categoria": "Medicamentos e insumos médicos",
-    "subcategorias": [
-      "Analgésicos básicos",
-      "Antisépticos",
-      "Material de curación",
-      "Sueros y electrolitos"
-    ],
-    "peso_unitario_kg": 4
-  },
-  {
-    "categoria": "Equipamiento de emergencia",
-    "subcategorias": [
-      "Linternas y baterías",
-      "Mantas térmicas",
-      "Herramientas multipropósito",
-      "Kits de purificación de agua"
-    ],
-    "peso_unitario_kg": 8
-  },
-  {
-    "categoria": "Artículos para refugio",
-    "subcategorias": [
-      "Carpas y toldos",
-      "Colchonetas",
-      "Mosquiteros"
-    ],
-    "peso_unitario_kg": 12
-  },
-  {
-    "categoria": "Logística y almacenamiento",
-    "subcategorias": [
-      "Contenedores herméticos",
-      "Cubetas y recipientes",
-      "Material de embalaje"
-    ],
-    "peso_unitario_kg": 6
+    "id": 3,
+    "modelo": "Sprinter",
+    "tipo": "van",
+    "velocidad_kmh": 55,
+    "consumo_litros_km": 0.6,
+    "maximo_peso_ton": 2.0
   }
 ]
