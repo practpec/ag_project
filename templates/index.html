@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗺️ Mapa de Rutas México - OpenStreetMap</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            color: #333;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.8;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #27ae60;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .controls h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            align-items: end;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .map-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 600px;
+            border-radius: 15px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .stats h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .error {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .info-box {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .feature-list {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .feature-list {
+                justify-content: center;
+            }
+        }
+
+        /* Estilos personalizados para marcadores de Leaflet */
+        .custom-div-icon {
+            background: transparent;
+            border: none;
+        }
+
+        .marker-pin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            background: #e74c3c;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -15px 0 0 -15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        }
+
+        .marker-pin::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            margin: 7px 0 0 7px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .secondary-marker {
+            background: #3498db;
+        }
+
+        .pulse {
+            background: rgba(231, 76, 60, 0.2);
+            border-radius: 50%;
+            height: 14px;
+            width: 14px;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin: -7px 0 0 -7px;
+            transform: rotateX(55deg);
+            z-index: -2;
+        }
+
+        .pulse:after {
+            content: "";
+            border-radius: 50%;
+            height: 40px;
+            width: 40px;
+            position: absolute;
+            margin: -13px 0 0 -13px;
+            animation: pulsate 1s ease-out;
+            animation-iteration-count: infinite;
+            opacity: 0.0;
+            box-shadow: 0 0 1px 2px #e74c3c;
+            animation-delay: 1.1s;
+        }
+
+        @keyframes pulsate {
+            0% {
+                transform: scale(0.1, 0.1);
+                opacity: 0.0;
+            }
+            50% {
+                opacity: 1.0;
+            }
+            100% {
+                transform: scale(1.2, 1.2);
+                opacity: 0.0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Mapa de Rutas México</h1>
+            <p>Generador de nodos y rutas reales con OpenStreetMap</p>
+            <div class="badge">✅ 100% GRATUITO - Sin API Keys</div>
+            
+            <div class="feature-list">
+                <div class="feature-item">🚫 Sin RFC requerido</div>
+                <div class="feature-item">🌍 OpenStreetMap</div>
+                <div class="feature-item">🛣️ Rutas reales</div>
+                <div class="feature-item">📊 Estadísticas</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h2>Configuración</h2>
+            
+            <div class="info-box">
+                <strong>🎯 ¿Cómo funciona?</strong><br>
+                Selecciona un estado como punto de partida y el número de destinos. 
+                La aplicación generará nodos aleatorios dentro de 100km y calculará rutas reales por carretera.
+            </div>
+            
+            <div class="error" id="error-message"></div>
+            
+            <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                    <label for="estado">🏛️ Estado (Nodo Principal):</label>
+                    <select id="estado">
+                        {% for estado in estados %}
+                            <option value="{{ estado }}" {% if estado == "Chiapas" %}selected{% endif %}>
+                                {{ estado }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group" style="flex: 1;">
+                    <label for="n_nodos">🎯 Número de Destinos:</label>
+                    <input type="number" id="n_nodos" min="1" max="15" value="5">
+                </div>
+                
+                <div class="form-group">
+                    <button class="btn" id="generar-btn" onclick="generarMapa()">
+                        🚀 Generar Mapa
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p><strong>Generando rutas...</strong></p>
+                <p style="font-size: 0.9em; margin-top: 5px;">Esto puede tomar unos segundos</p>
+            </div>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <h3>📊 Estadísticas del Recorrido</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-nodos">0</div>
+                    <div class="stat-label">Destinos Generados</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="distancia-total">0 km</div>
+                    <div class="stat-label">Distancia Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="tiempo-total">0 min</div>
+                    <div class="stat-label">Tiempo Total Estimado</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="ruta-mas-larga">0 km</div>
+                    <div class="stat-label">Ruta Más Larga</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        let map;
+        let markers = [];
+        let routes = [];
+        let currentData = null;
+
+        // Inicializar el mapa
+        function initMap() {
+            map = L.map('map').setView([23.6345, -102.5528], 6);
+
+            // Agregar capa de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18,
+            }).addTo(map);
+
+            // Agregar controles adicionales
+            L.control.scale().addTo(map);
+        }
+
+        // Función para mostrar/ocultar loading
+        function toggleLoading(show) {
+            const loading = document.getElementById('loading');
+            const btn = document.getElementById('generar-btn');
+            
+            if (show) {
+                loading.classList.add('show');
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Generando...';
+            } else {
+                loading.classList.remove('show');
+                btn.disabled = false;
+                btn.innerHTML = '🚀 Generar Mapa';
+            }
+        }
+
+        // Función para mostrar errores
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.innerHTML = `<strong>❌ Error:</strong> ${message}`;
+            errorDiv.classList.add('show');
+            
+            setTimeout(() => {
+                errorDiv.classList.remove('show');
+            }, 6000);
+        }
+
+        // Limpiar mapa
+        function clearMap() {
+            // Limpiar marcadores
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            // Limpiar rutas
+            routes.forEach(route => map.removeLayer(route));
+            routes = [];
+        }
+
+        // Generar mapa principal
+        async function generarMapa() {
+            const estado = document.getElementById('estado').value;
+            const nNodos = parseInt(document.getElementById('n_nodos').value);
+
+            if (nNodos < 1 || nNodos > 15) {
+                showError('El número de destinos debe estar entre 1 y 15');
+                return;
+            }
+
+            toggleLoading(true);
+            clearMap();
+
+            try {
+                const response = await fetch('/api/generate-nodes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        estado: estado,
+                        n_nodos: nNodos
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Error al generar nodos');
+                }
+
+                currentData = data;
+                mostrarNodosYRutas(data);
+                actualizarEstadisticas(data);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`No se pudo generar el mapa: ${error.message}`);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        // Mostrar nodos y rutas en el mapa
+        function mostrarNodosYRutas(data) {
+            const bounds = L.latLngBounds();
+
+            // Crear marcador principal con animación
+            const principalIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `
+                    <div class="marker-pin">
+                        <div class="pulse"></div>
+                    </div>
+                `,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            const principalMarker = L.marker(
+                [data.nodo_principal.lat, data.nodo_principal.lng], 
+                { icon: principalIcon }
+            ).addTo(map);
+
+            principalMarker.bindPopup(`
+                <div style="text-align: center; padding: 10px;">
+                    <h4>🏛️ ${data.nodo_principal.nombre}</h4>
+                    <p><strong>Nodo Principal</strong></p>
+                    <p>📍 ${data.nodo_principal.lat.toFixed(4)}, ${data.nodo_principal.lng.toFixed(4)}</p>
+                </div>
+            `);
+
+            markers.push(principalMarker);
+            bounds.extend([data.nodo_principal.lat, data.nodo_principal.lng]);
+
+            // Crear círculo de 100km
+            const circle = L.circle(
+                [data.nodo_principal.lat, data.nodo_principal.lng], 
+                {
+                    color: '#27ae60',
+                    fillColor: '#27ae60',
+                    fillOpacity: 0.1,
+                    radius: 100000 // 100km en metros
+                }
+            ).addTo(map);
+
+            markers.push(circle);
+
+            // Agregar marcadores secundarios y rutas
+            data.rutas.forEach((rutaData, index) => {
+                const destino = rutaData.destino;
+                const ruta = rutaData.ruta;
+
+                // Crear marcador secundario
+                const secundarioIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `
+                        <div class="marker-pin secondary-marker">
+                            <div style="
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%) rotate(45deg);
+                                color: white;
+                                font-weight: bold;
+                                font-size: 12px;
+                            ">${index + 1}</div>
+                        </div>
+                    `,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+
+                const secundarioMarker = L.marker(
+                    [destino.lat, destino.lng], 
+                    { icon: secundarioIcon }
+                ).addTo(map);
+
+                secundarioMarker.bindPopup(`
+                    <div style="padding: 15px;">
+                        <h4>🎯 Destino ${index + 1}</h4>
+                        <hr style="margin: 10px 0;">
+                        <p><strong>🛣️ Distancia:</strong> ${ruta.distancia.text}</p>
+                        <p><strong>⏱️ Tiempo:</strong> ${ruta.duracion.text}</p>
+                        <p><strong>📍 Coordenadas:</strong><br>${destino.lat.toFixed(4)}, ${destino.lng.toFixed(4)}</p>
+                        <p><strong>📏 Línea recta:</strong> ${destino.distancia_directa} km</p>
+                    </div>
+                `);
+
+                markers.push(secundarioMarker);
+                bounds.extend([destino.lat, destino.lng]);
+
+                // Dibujar ruta
+                if (ruta.puntos_ruta && ruta.puntos_ruta.length > 0) {
+                    const routePoints = ruta.puntos_ruta.map(punto => [punto.lat, punto.lng]);
+                    
+                    const polyline = L.polyline(routePoints, {
+                        color: getRouteColor(index),
+                        weight: 4,
+                        opacity: 0.8,
+                        dashArray: index % 2 === 0 ? null : '10, 5'
+                    }).addTo(map);
+
+                    polyline.bindPopup(`
+                        <div style="text-align: center;">
+                            <h4>Ruta ${index + 1}</h4>
+                            <p>${ruta.distancia.text} - ${ruta.duracion.text}</p>
+                        </div>
+                    `);
+
+                    routes.push(polyline);
+                } else {
+                    // Línea recta como fallback
+                    const straightLine = L.polyline([
+                        [data.nodo_principal.lat, data.nodo_principal.lng],
+                        [destino.lat, destino.lng]
+                    ], {
+                        color: getRouteColor(index),
+                        weight: 3,
+                        opacity: 0.6,
+                        dashArray: '15, 10'
+                    }).addTo(map);
+
+                    routes.push(straightLine);
+                }
+            });
+
+            // Ajustar vista del mapa
+            map.fitBounds(bounds, { padding: [20, 20] });
+        }
+
+        // Obtener color para la ruta
+        function getRouteColor(index) {
+            const colors = [
+                '#e74c3c', '#3498db', '#f39c12', '#27ae60', '#9b59b6',
+                '#e67e22', '#1abc9c', '#34495e', '#f1c40f', '#95a5a6',
+                '#e91e63', '#ff5722', '#607d8b', '#795548', '#009688'
+            ];
+            return colors[index % colors.length];
+        }
+
+        // Actualizar estadísticas
+        function actualizarEstadisticas(data) {
+            const statsDiv = document.getElementById('stats');
+            
+            let distanciaTotal = 0;
+            let tiempoTotal = 0;
+            let rutaMasLarga = 0;
+
+            data.rutas.forEach(rutaData => {
+                const ruta = rutaData.ruta;
+                const distanciaKm = ruta.distancia.value / 1000;
+                const tiempoMin = ruta.duracion.value / 60;
+                
+                distanciaTotal += distanciaKm;
+                tiempoTotal += tiempoMin;
+                
+                if (distanciaKm > rutaMasLarga) {
+                    rutaMasLarga = distanciaKm;
+                }
+            });
+
+            document.getElementById('total-nodos').textContent = data.rutas.length;
+            document.getElementById('distancia-total').textContent = distanciaTotal.toFixed(1) + ' km';
+            document.getElementById('tiempo-total').textContent = Math.round(tiempoTotal) + ' min';
+            document.getElementById('ruta-mas-larga').textContent = rutaMasLarga.toFixed(1) + ' km';
+
+            // Animación de aparición
+            statsDiv.style.display = 'block';
+            statsDiv.style.opacity = '0';
+            setTimeout(() => {
+                statsDiv.style.transition = 'opacity 0.5s ease';
+                statsDiv.style.opacity = '1';
+            }, 100);
+        }
+
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+        });
+
+        // Función para descargar datos (bonus feature)
+        function descargarDatos() {
+            if (!currentData) {
+                showError('No hay datos para descargar. Genera un mapa primero.');
+                return;
+            }
+
+            const dataStr = JSON.stringify(currentData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `rutas_${document.getElementById('estado').value}_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
