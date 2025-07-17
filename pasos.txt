@@ -1,0 +1,10 @@
+flujo de trabajo
+generar el mapa donde ingesarasa punto de inicio y cuntaos destinos
+obtener los destinos y sus rutas
+con base a eso generar un escenario uno puede seleccionar que tipo de desastre, 
+puede deteminar la cantidad de vehiculos,
+en caso de querere agregar un vehucilo debe poder ademas de seleccinar que tipo de vehiculo quiere que esos sera un combo box
+
+
+
+por el momento hasta ahi
