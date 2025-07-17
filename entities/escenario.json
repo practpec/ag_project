@@ -1,0 +1,26 @@
+{
+  "punto_partida": "Ubicacion5",
+  "tipo_desastre": "incendio",
+  "ubicaciones_afectadas": [
+    "Ubicacion1",
+    "Ubicacion2",
+    "Ubicacion3",
+    "Ubicacion4",
+    "Ubicacion6"
+  ],
+  "rutas_estado": [
+    { "ruta_id": "Ruta1", "estado": "abierta", "vehiculos_permitidos": ["camion", "auto"] },
+    { "ruta_id": "Ruta2", "estado": "abierta", "vehiculos_permitidos": ["van", "auto"] },
+    { "ruta_id": "Ruta3", "estado": "cerrada", "vehiculos_permitidos": ["camion"] },
+    { "ruta_id": "Ruta4", "estado": "abierta", "vehiculos_permitidos": ["camion", "van"] },
+    { "ruta_id": "Ruta5", "estado": "abierta", "vehiculos_permitidos": ["auto"] },
+    { "ruta_id": "Ruta6", "estado": "abierta", "vehiculos_permitidos": ["camion", "van", "auto"] }
+  ],
+  "vehiculos_asignados": [
+    { "vehiculo_id": 1, "destino": "Ubicacion1" },
+    { "vehiculo_id": 2, "destino": "Ubicacion2" },
+    { "vehiculo_id": 3, "destino": "Ubicacion3" },
+    { "vehiculo_id": 4, "destino": "Ubicacion4" },
+    { "vehiculo_id": 5, "destino": "Ubicacion6" }
+  ]
+}

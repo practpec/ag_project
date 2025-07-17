@@ -1,0 +1,8 @@
+[
+  { "id": "Ruta1", "origen": "Ubicacion1", "destino": "Ubicacion2", "distancia_km": 100 },
+  { "id": "Ruta2", "origen": "Ubicacion1", "destino": "Ubicacion3", "distancia_km": 120 },
+  { "id": "Ruta3", "origen": "Ubicacion1", "destino": "Ubicacion4", "distancia_km": 80 },
+  { "id": "Ruta4", "origen": "Ubicacion2", "destino": "Ubicacion3", "distancia_km": 60 },
+  { "id": "Ruta5", "origen": "Ubicacion2", "destino": "Ubicacion4", "distancia_km": 90 },
+  { "id": "Ruta6", "origen": "Ubicacion3", "destino": "Ubicacion4", "distancia_km": 70 }
+]
