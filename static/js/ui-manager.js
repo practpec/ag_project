@@ -1,6 +1,3 @@
-/**
- * Gestor de la interfaz de usuario
- */
 class UIManager {
     constructor(mapManager) {
         this.mapManager = mapManager;
@@ -8,9 +5,6 @@ class UIManager {
         this.isPanelCollapsed = false;
     }
 
-    /**
-     * Mostrar/ocultar loading
-     */
     toggleLoading(show) {
         const loading = document.getElementById('loading');
         const btn = document.getElementById('generar-btn');
@@ -28,9 +22,6 @@ class UIManager {
         }
     }
 
-    /**
-     * Mostrar error
-     */
     showError(message) {
         const errorDiv = document.getElementById('error-message');
         errorDiv.innerHTML = `<strong>❌ Error:</strong> ${message}`;
@@ -41,9 +32,6 @@ class UIManager {
         }, 6000);
     }
 
-    /**
-     * Actualizar panel de rutas
-     */
     updateRoutesPanel(routesData) {
         const panelContent = document.getElementById('panel-content');
         
@@ -59,7 +47,6 @@ class UIManager {
         let html = '';
         
         routesData.forEach((destinoData, index) => {
-            const destino = destinoData.destino;
             const rutas = destinoData.rutas || [];
             
             html += `
@@ -83,9 +70,6 @@ class UIManager {
         panelContent.innerHTML = html;
     }
 
-    /**
-     * Generar HTML para las rutas de un destino
-     */
     _generateRoutesHTML(rutas, destinationIndex) {
         if (rutas.length === 0) {
             return `
@@ -117,17 +101,13 @@ class UIManager {
                     </div>
                     
                     <div class="route-details">
-                        ${ruta.descripcion || 'Camino disponible hacia el destino'}
+                        ${ruta.descripcion || 'Camino hacia el destino'}
                     </div>
                     
                     <div class="route-stats">
                         <div class="route-stat">
                             <span>🛣️</span>
                             <span>${ruta.distancia.text}</span>
-                        </div>
-                        <div class="route-stat">
-                            <span>⏱️</span>
-                            <span>${ruta.duracion.text}</span>
                         </div>
                         <div class="route-stat">
                             <span>📍</span>
@@ -141,54 +121,15 @@ class UIManager {
         return html;
     }
 
-    /**
-     * Generar HTML para los pasos de una ruta
-     */
-    _generateStepsHTML(pasos) {
-        if (!pasos || pasos.length === 0) {
-            return '';
-        }
-
-        let html = `
-            <div class="route-steps" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
-                <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.9em;">📋 Instrucciones:</div>
-        `;
-
-        pasos.slice(0, 3).forEach((paso, index) => {
-            html += `
-                <div style="font-size: 0.8em; margin-bottom: 4px; color: #666;">
-                    ${index + 1}. ${paso.instruccion} (${paso.distancia})
-                </div>
-            `;
-        });
-
-        if (pasos.length > 3) {
-            html += `
-                <div style="font-size: 0.8em; color: #999; font-style: italic;">
-                    ... y ${pasos.length - 3} pasos más
-                </div>
-            `;
-        }
-
-        html += '</div>';
-        return html;
-    }
-
-    /**
-     * Resaltar una ruta específica en el panel
-     */
     highlightRouteInPanel(destinationIndex, routeIndex) {
-        // Quitar highlight de todas las rutas
         document.querySelectorAll('.route-item').forEach(item => {
             item.classList.remove('highlighted');
         });
 
-        // Agregar highlight a la ruta seleccionada
         const routeElement = document.getElementById(`route-${destinationIndex}-${routeIndex}`);
         if (routeElement) {
             routeElement.classList.add('highlighted');
             
-            // Hacer scroll hacia el elemento si no está visible
             routeElement.scrollIntoView({ 
                 behavior: 'smooth', 
                 block: 'nearest' 
@@ -196,9 +137,6 @@ class UIManager {
         }
     }
 
-    /**
-     * Expandir destino en el panel
-     */
     expandDestination(destinationIndex) {
         const header = document.querySelector(`[data-destination="${destinationIndex}"]`);
         const routesList = document.getElementById(`routes-${destinationIndex}`);
@@ -209,9 +147,6 @@ class UIManager {
         }
     }
 
-    /**
-     * Colapsar todos los destinos
-     */
     collapseAllDestinations() {
         document.querySelectorAll('.destination-header').forEach(header => {
             header.classList.remove('active');
@@ -221,9 +156,6 @@ class UIManager {
         });
     }
 
-    /**
-     * Toggle del panel principal
-     */
     togglePanel() {
         const panel = document.querySelector('.routes-panel');
         const btn = document.querySelector('.collapse-btn');
@@ -239,21 +171,6 @@ class UIManager {
         }
     }
 
-    /**
-     * Actualizar mensaje de loading con progreso
-     */
-    updateLoadingProgress(current, total, message) {
-        const loadingDiv = document.getElementById('loading');
-        const progressText = loadingDiv.querySelector('p:last-child');
-        
-        if (progressText) {
-            progressText.innerHTML = `${message} (${current}/${total})`;
-        }
-    }
-
-    /**
-     * Mostrar resumen de estadísticas en el header del panel
-     */
     updatePanelHeader(stats) {
         const headerTitle = document.querySelector('.panel-header h3');
         if (headerTitle && stats) {
@@ -261,9 +178,6 @@ class UIManager {
         }
     }
 
-    /**
-     * Validar formulario
-     */
     validateForm() {
         const estado = document.getElementById('estado').value;
         const nNodos = parseInt(document.getElementById('n_nodos').value);
@@ -281,9 +195,6 @@ class UIManager {
         return true;
     }
 
-    /**
-     * Obtener valores del formulario
-     */
     getFormValues() {
         return {
             estado: document.getElementById('estado').value,

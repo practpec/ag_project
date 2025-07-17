@@ -1,6 +1,3 @@
-/**
- * Gestor del mapa Leaflet
- */
 class MapManager {
     constructor() {
         this.map = null;
@@ -9,40 +6,27 @@ class MapManager {
         this.currentBounds = null;
     }
 
-    /**
-     * Inicializar el mapa
-     */
     init() {
         this.map = L.map('map').setView([23.6345, -102.5528], 6);
 
-        // Agregar capa de OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             maxZoom: 18,
         }).addTo(this.map);
 
-        // Agregar controles adicionales
         L.control.scale().addTo(this.map);
     }
 
-    /**
-     * Limpiar todos los elementos del mapa
-     */
     clearMap() {
-        // Limpiar marcadores
         this.markers.forEach(marker => this.map.removeLayer(marker));
         this.markers = [];
 
-        // Limpiar rutas
         this.routeLayers.forEach(layer => this.map.removeLayer(layer));
         this.routeLayers = [];
 
         this.currentBounds = null;
     }
 
-    /**
-     * Agregar nodo principal al mapa
-     */
     addPrincipalNode(nodeData) {
         const principalIcon = L.divIcon({
             className: 'custom-div-icon',
@@ -74,9 +58,6 @@ class MapManager {
         return marker;
     }
 
-    /**
-     * Agregar nodo secundario al mapa
-     */
     addSecondaryNode(nodeData, index) {
         const secondaryIcon = L.divIcon({
             className: 'custom-div-icon',
@@ -107,7 +88,7 @@ class MapManager {
                 <h4>🎯 Destino ${index + 1}</h4>
                 <hr style="margin: 10px 0;">
                 <p><strong>📍 Coordenadas:</strong><br>${nodeData.lat.toFixed(4)}, ${nodeData.lng.toFixed(4)}</p>
-                <p><strong>📏 Distancia directa:</strong> ${nodeData.distancia_directa} km</p>
+                <p><strong>📏 Distancia:</strong> ${nodeData.distancia_directa} km</p>
             </div>
         `);
 
@@ -117,9 +98,6 @@ class MapManager {
         return marker;
     }
 
-    /**
-     * Agregar ruta al mapa
-     */
     addRoute(routeData, destinationIndex, routeIndex) {
         if (!routeData.puntos_ruta || routeData.puntos_ruta.length === 0) {
             return null;
@@ -139,29 +117,22 @@ class MapManager {
             <div style="text-align: center;">
                 <h4>Ruta ${routeIndex + 1} hacia Destino ${destinationIndex + 1}</h4>
                 <p><strong>🛣️ ${routeData.distancia.text}</strong></p>
-                <p><strong>⏱️ ${routeData.duracion.text}</strong></p>
-                <p><strong>📍 Tipo:</strong> ${routeData.tipo || 'Ruta por carretera'}</p>
+                <p><strong>📍 Tipo:</strong> ${routeData.tipo || 'Ruta'}</p>
             </div>
         `);
 
         this.routeLayers.push(polyline);
 
-        // Actualizar bounds con los puntos de la ruta
         routePoints.forEach(point => this._updateBounds(point));
 
         return polyline;
     }
 
-    /**
-     * Resaltar una ruta específica
-     */
     highlightRoute(destinationIndex, routeIndex) {
-        // Desvanecer todas las rutas
         this.routeLayers.forEach(layer => {
             layer.setStyle({ opacity: 0.3, weight: 2 });
         });
 
-        // Resaltar la ruta seleccionada
         const targetClass = `route-${destinationIndex}-${routeIndex}`;
         this.routeLayers.forEach(layer => {
             if (layer.options.className === targetClass) {
@@ -175,9 +146,6 @@ class MapManager {
         });
     }
 
-    /**
-     * Restaurar opacidad normal de todas las rutas
-     */
     resetRouteHighlight() {
         this.routeLayers.forEach((layer, index) => {
             const originalColor = this._getRouteColorByIndex(index);
@@ -189,18 +157,12 @@ class MapManager {
         });
     }
 
-    /**
-     * Centrar el mapa en todas las rutas
-     */
     fitToRoutes() {
         if (this.currentBounds) {
             this.map.fitBounds(this.currentBounds, { padding: [20, 20] });
         }
     }
 
-    /**
-     * Obtener colores para las rutas
-     */
     _getRouteColor(destinationIndex, routeIndex) {
         const colors = [
             '#e74c3c', '#3498db', '#f39c12', '#27ae60', '#9b59b6',
@@ -208,7 +170,6 @@ class MapManager {
             '#e91e63', '#ff5722', '#607d8b', '#795548', '#009688'
         ];
         
-        // Combinar índice de destino y ruta para obtener colores únicos
         const colorIndex = (destinationIndex * 3 + routeIndex) % colors.length;
         return colors[colorIndex];
     }
@@ -222,9 +183,6 @@ class MapManager {
         return colors[layerIndex % colors.length];
     }
 
-    /**
-     * Actualizar bounds para ajustar la vista del mapa
-     */
     _updateBounds(latLng) {
         if (!this.currentBounds) {
             this.currentBounds = L.latLngBounds();

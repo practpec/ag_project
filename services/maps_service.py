@@ -4,33 +4,70 @@ from geopy.distance import geodesic
 import time
 
 class OSMService:
-    """Servicio para obtener rutas usando OpenStreetMap y OSRM"""
-    
     def __init__(self):
-        # Servidor público de OSRM (OpenStreetMap Routing Machine)
         self.osrm_base_url = "http://router.project-osrm.org"
         
-    def obtener_ruta(self, origen, destino):
-        """
-        Obtener ruta entre dos puntos usando OSRM
-        """
+    def obtener_rutas_completas_optimizado(self, origen, destinos):
+        rutas_data = []
+        
+        for i, destino in enumerate(destinos):
+            rutas_destino = self._obtener_rutas_multiples_destino(origen, destino, i)
+            
+            rutas_data.append({
+                'indice': i,
+                'destino': destino,
+                'rutas': rutas_destino
+            })
+            
+            time.sleep(0.3)
+        
+        return rutas_data
+    
+    def _obtener_rutas_multiples_destino(self, origen, destino, index):
+        rutas = []
+        
         try:
-            # Formato: lng,lat (OSRM usa longitud,latitud)
+            ruta_principal = self._obtener_ruta_simple(origen, destino)
+            if ruta_principal:
+                ruta_principal['tipo'] = 'Ruta 1'
+                ruta_principal['descripcion'] = 'Ruta hacia el destino'
+                rutas.append(ruta_principal)
+
+            distancia_km = self._calcular_distancia_directa(origen, destino)
+            
+            if distancia_km > 10:
+                ruta_norte = self._obtener_ruta_variante(origen, destino, 'norte')
+                if ruta_norte and not self._son_rutas_similares(ruta_principal, ruta_norte):
+                    ruta_norte['tipo'] = 'Ruta 2'
+                    ruta_norte['descripcion'] = 'Ruta hacia el destino'
+                    rutas.append(ruta_norte)
+
+                if distancia_km > 30:
+                    ruta_sur = self._obtener_ruta_variante(origen, destino, 'sur')
+                    if ruta_sur and not self._es_ruta_similar_a_lista(ruta_sur, rutas):
+                        ruta_sur['tipo'] = 'Ruta 3'
+                        ruta_sur['descripcion'] = 'Ruta hacia el destino'
+                        rutas.append(ruta_sur)
+
+        except Exception as e:
+            print(f"Error obteniendo rutas para destino {index + 1}: {e}")
+        
+        return rutas
+    
+    def _obtener_ruta_simple(self, origen, destino):
+        try:
             origen_str = f"{origen['lng']},{origen['lat']}"
             destino_str = f"{destino['lng']},{destino['lat']}"
             
-            # URL para OSRM
             url = f"{self.osrm_base_url}/route/v1/driving/{origen_str};{destino_str}"
             params = {
-                'overview': 'full',
-                'geometries': 'geojson',
-                'steps': 'true'
+                'overview': 'simplified',
+                'geometries': 'geojson'
             }
             
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=8)
             
             if response.status_code != 200:
-                # Fallback: calcular línea recta
                 return self._calcular_ruta_directa(origen, destino)
             
             data = response.json()
@@ -40,154 +77,100 @@ class OSMService:
             
             route = data['routes'][0]
             
-            # Extraer información de la ruta
-            ruta_info = {
+            return {
                 'distancia': {
                     'text': f"{route['distance']/1000:.1f} km",
-                    'value': route['distance']  # en metros
+                    'value': route['distance']
                 },
-                'duracion': {
-                    'text': f"{route['duration']/60:.0f} min",
-                    'value': route['duration']  # en segundos
-                },
-                'puntos_ruta': self._extraer_puntos_geojson(route['geometry']),
-                'pasos': self._extraer_pasos_osrm(route.get('legs', []))
+                'puntos_ruta': self._extraer_puntos_geojson(route['geometry'])
             }
             
-            return ruta_info
-            
         except Exception as e:
-            print(f"Error al obtener ruta OSRM: {e}")
-            # Fallback: calcular línea recta
             return self._calcular_ruta_directa(origen, destino)
     
-    def obtener_rutas_multiples(self, origen, destinos):
-        """
-        Obtener rutas desde un origen hacia múltiples destinos
-        """
-        rutas = []
-        
-        for i, destino in enumerate(destinos):
-            print(f"Calculando ruta {i+1}/{len(destinos)}...")
-            ruta = self.obtener_ruta(origen, destino)
-            if ruta:
-                rutas.append({
-                    'indice': i,
-                    'destino': destino,
-                    'ruta': ruta
-                })
+    def _obtener_ruta_variante(self, origen, destino, direccion):
+        try:
+            mid_lat = (origen['lat'] + destino['lat']) / 2
+            mid_lng = (origen['lng'] + destino['lng']) / 2
             
-            # Pequeña pausa para no sobrecargar el servidor
-            time.sleep(0.5)
+            offset = 0.01 if direccion == 'norte' else -0.01
+            waypoint = {
+                'lat': mid_lat + offset,
+                'lng': mid_lng
+            }
+
+            ruta1 = self._obtener_ruta_simple(origen, waypoint)
+            ruta2 = self._obtener_ruta_simple(waypoint, destino)
+
+            if ruta1 and ruta2:
+                return self._combinar_rutas(ruta1, ruta2)
+                
+        except Exception:
+            pass
         
-        return rutas
+        return None
+    
+    def _combinar_rutas(self, ruta1, ruta2):
+        return {
+            'distancia': {
+                'text': f"{(ruta1['distancia']['value'] + ruta2['distancia']['value'])/1000:.1f} km",
+                'value': ruta1['distancia']['value'] + ruta2['distancia']['value']
+            },
+            'puntos_ruta': ruta1['puntos_ruta'] + ruta2['puntos_ruta']
+        }
     
     def _calcular_ruta_directa(self, origen, destino):
-        """
-        Calcular ruta en línea recta como fallback
-        """
         distancia_km = geodesic(
             (origen['lat'], origen['lng']),
             (destino['lat'], destino['lng'])
         ).kilometers
-        
-        # Estimar tiempo (50 km/h promedio)
-        tiempo_minutos = (distancia_km / 50) * 60
         
         return {
             'distancia': {
                 'text': f"{distancia_km:.1f} km",
                 'value': distancia_km * 1000
             },
-            'duracion': {
-                'text': f"{tiempo_minutos:.0f} min",
-                'value': tiempo_minutos * 60
-            },
             'puntos_ruta': [
                 {'lat': origen['lat'], 'lng': origen['lng']},
                 {'lat': destino['lat'], 'lng': destino['lng']}
-            ],
-            'pasos': [{
-                'instruccion': f"Dirigirse hacia el destino",
-                'distancia': f"{distancia_km:.1f} km",
-                'duracion': f"{tiempo_minutos:.0f} min"
-            }]
+            ]
         }
     
     def _extraer_puntos_geojson(self, geometry):
-        """
-        Extraer puntos de la geometría GeoJSON
-        """
         if geometry['type'] == 'LineString':
             puntos = []
-            for coord in geometry['coordinates']:
+            coords = geometry['coordinates']
+            step = max(1, len(coords) // 20)
+            
+            for i in range(0, len(coords), step):
+                coord = coords[i]
                 puntos.append({
-                    'lat': coord[1],  # Latitud
-                    'lng': coord[0]   # Longitud
+                    'lat': coord[1],
+                    'lng': coord[0]
                 })
+            
+            if len(coords) > 0 and coords[-1] != coords[step * (len(coords) // step - 1)]:
+                coord = coords[-1]
+                puntos.append({
+                    'lat': coord[1],
+                    'lng': coord[0]
+                })
+            
             return puntos
         return []
     
-    def _extraer_pasos_osrm(self, legs):
-        """
-        Extraer pasos de navegación de OSRM
-        """
-        pasos = []
-        
-        for leg in legs:
-            for step in leg.get('steps', []):
-                pasos.append({
-                    'instruccion': step.get('maneuver', {}).get('instruction', 'Continuar'),
-                    'distancia': f"{step.get('distance', 0)/1000:.1f} km",
-                    'duracion': f"{step.get('duration', 0)/60:.1f} min"
-                })
-        
-        return pasos
+    def _calcular_distancia_directa(self, origen, destino):
+        return geodesic(
+            (origen['lat'], origen['lng']),
+            (destino['lat'], destino['lng'])
+        ).kilometers
     
-    def obtener_rutas_con_nominatim(self, origen, destino):
-        """
-        Método alternativo usando Nominatim para geocodificación
-        """
-        try:
-            # Usar Nominatim para obtener direcciones más precisas
-            nominatim_url = "https://nominatim.openstreetmap.org/reverse"
-            
-            # Obtener dirección del origen
-            params_origen = {
-                'lat': origen['lat'],
-                'lon': origen['lng'],
-                'format': 'json'
-            }
-            
-            response_origen = requests.get(nominatim_url, params=params_origen)
-            direccion_origen = "Origen"
-            
-            if response_origen.status_code == 200:
-                data_origen = response_origen.json()
-                direccion_origen = data_origen.get('display_name', 'Origen')
-            
-            # Obtener dirección del destino
-            params_destino = {
-                'lat': destino['lat'],
-                'lon': destino['lng'],
-                'format': 'json'
-            }
-            
-            response_destino = requests.get(nominatim_url, params=params_destino)
-            direccion_destino = "Destino"
-            
-            if response_destino.status_code == 200:
-                data_destino = response_destino.json()
-                direccion_destino = data_destino.get('display_name', 'Destino')
-            
-            # Obtener ruta normal
-            ruta = self.obtener_ruta(origen, destino)
-            if ruta:
-                ruta['direccion_origen'] = direccion_origen
-                ruta['direccion_destino'] = direccion_destino
-            
-            return ruta
-            
-        except Exception as e:
-            print(f"Error con Nominatim: {e}")
-            return self.obtener_ruta(origen, destino)
+    def _son_rutas_similares(self, ruta1, ruta2, threshold=0.15):
+        if not ruta1 or not ruta2:
+            return False
+        
+        diff = abs(ruta1['distancia']['value'] - ruta2['distancia']['value']) / ruta1['distancia']['value']
+        return diff < threshold
+    
+    def _es_ruta_similar_a_lista(self, nueva_ruta, rutas_existentes, threshold=0.15):
+        return any(self._son_rutas_similares(nueva_ruta, ruta, threshold) for ruta in rutas_existentes)
