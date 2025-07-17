@@ -1,12 +1,18 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from services.maps_service import OSMService
 from services.geo_service import GeoServiceOSM
+import os
 
 app = Flask(__name__)
 
 # Inicializar servicios
 geo_service = GeoServiceOSM()
 osm_service = OSMService()
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    """Servir archivos estáticos desde templates/static/"""
+    return send_from_directory('templates/static', filename)
 
 @app.route("/")
 def index():
@@ -64,6 +70,14 @@ def get_route():
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route("/api/status")
+def get_status():
+    """API endpoint para verificar estado del servidor"""
+    return jsonify({
+        'status': 'online',
+        'message': 'Servidor funcionando correctamente'
+    })
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)

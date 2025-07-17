@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🗺️ Mapa de Rutas México - OpenStreetMap</title>
-     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🗺️ Mapa de Rutas México</h1>
-            <p>Generador de nodos y rutas reales con OpenStreetMap</p>
+            <p>Generador de múltiples opciones de rutas con OpenStreetMap</p>
         </div>
 
         <div class="controls">
@@ -20,7 +20,7 @@
             <div class="info-box">
                 <strong>🎯 ¿Cómo funciona?</strong><br>
                 Selecciona un estado como punto de partida y el número de destinos. 
-                La aplicación generará nodos aleatorios dentro de 100km y calculará rutas reales por carretera.
+                La aplicación mostrará todas las rutas posibles desde el nodo principal hacia cada destino.
             </div>
             
             <div class="error" id="error-message"></div>
@@ -50,33 +50,28 @@
             </div>
         </div>
 
-        <div class="map-container">
-            <div id="map"></div>
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p><strong>Generando rutas...</strong></p>
-                <p style="font-size: 0.9em; margin-top: 5px;">Esto puede tomar unos segundos</p>
+        <div class="main-content">
+            <div class="map-section">
+                <div class="map-container">
+                    <div id="map"></div>
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p><strong>Generando rutas...</strong></p>
+                        <p style="font-size: 0.9em; margin-top: 5px;">Buscando múltiples caminos</p>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="stats" id="stats" style="display: none;">
-            <h3>📊 Estadísticas del Recorrido</h3>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-value" id="total-nodos">0</div>
-                    <div class="stat-label">Destinos Generados</div>
+            <div class="routes-panel" id="routes-panel">
+                <div class="panel-header">
+                    <h3>🛣️ Opciones de Rutas</h3>
+                    <button class="collapse-btn" onclick="togglePanel()">−</button>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="distancia-total">0 km</div>
-                    <div class="stat-label">Distancia Total</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="tiempo-total">0 min</div>
-                    <div class="stat-label">Tiempo Total Estimado</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="ruta-mas-larga">0 km</div>
-                    <div class="stat-label">Ruta Más Larga</div>
+                
+                <div class="panel-content" id="panel-content">
+                    <div class="no-routes">
+                        <p>Genera un mapa para ver las opciones de rutas disponibles</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -85,300 +80,11 @@
     <!-- Leaflet JavaScript -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <script>
-        let map;
-        let markers = [];
-        let routes = [];
-        let currentData = null;
-
-        // Inicializar el mapa
-        function initMap() {
-            map = L.map('map').setView([23.6345, -102.5528], 6);
-
-            // Agregar capa de OpenStreetMap
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 18,
-            }).addTo(map);
-
-            // Agregar controles adicionales
-            L.control.scale().addTo(map);
-        }
-
-        // Función para mostrar/ocultar loading
-        function toggleLoading(show) {
-            const loading = document.getElementById('loading');
-            const btn = document.getElementById('generar-btn');
-            
-            if (show) {
-                loading.classList.add('show');
-                btn.disabled = true;
-                btn.innerHTML = '⏳ Generando...';
-            } else {
-                loading.classList.remove('show');
-                btn.disabled = false;
-                btn.innerHTML = '🚀 Generar Mapa';
-            }
-        }
-
-        // Función para mostrar errores
-        function showError(message) {
-            const errorDiv = document.getElementById('error-message');
-            errorDiv.innerHTML = `<strong>❌ Error:</strong> ${message}`;
-            errorDiv.classList.add('show');
-            
-            setTimeout(() => {
-                errorDiv.classList.remove('show');
-            }, 6000);
-        }
-
-        // Limpiar mapa
-        function clearMap() {
-            // Limpiar marcadores
-            markers.forEach(marker => map.removeLayer(marker));
-            markers = [];
-
-            // Limpiar rutas
-            routes.forEach(route => map.removeLayer(route));
-            routes = [];
-        }
-
-        // Generar mapa principal
-        async function generarMapa() {
-            const estado = document.getElementById('estado').value;
-            const nNodos = parseInt(document.getElementById('n_nodos').value);
-
-            if (nNodos < 1 || nNodos > 15) {
-                showError('El número de destinos debe estar entre 1 y 15');
-                return;
-            }
-
-            toggleLoading(true);
-            clearMap();
-
-            try {
-                const response = await fetch('/api/generate-nodes', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        estado: estado,
-                        n_nodos: nNodos
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!data.success) {
-                    throw new Error(data.error || 'Error al generar nodos');
-                }
-
-                currentData = data;
-                mostrarNodosYRutas(data);
-                actualizarEstadisticas(data);
-
-            } catch (error) {
-                console.error('Error:', error);
-                showError(`No se pudo generar el mapa: ${error.message}`);
-            } finally {
-                toggleLoading(false);
-            }
-        }
-
-        // Mostrar nodos y rutas en el mapa
-        function mostrarNodosYRutas(data) {
-            const bounds = L.latLngBounds();
-
-            // Crear marcador principal con animación
-            const principalIcon = L.divIcon({
-                className: 'custom-div-icon',
-                html: `
-                    <div class="marker-pin">
-                        <div class="pulse"></div>
-                    </div>
-                `,
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            });
-
-            const principalMarker = L.marker(
-                [data.nodo_principal.lat, data.nodo_principal.lng], 
-                { icon: principalIcon }
-            ).addTo(map);
-
-            principalMarker.bindPopup(`
-                <div style="text-align: center; padding: 10px;">
-                    <h4>🏛️ ${data.nodo_principal.nombre}</h4>
-                    <p><strong>Nodo Principal</strong></p>
-                    <p>📍 ${data.nodo_principal.lat.toFixed(4)}, ${data.nodo_principal.lng.toFixed(4)}</p>
-                </div>
-            `);
-
-            markers.push(principalMarker);
-            bounds.extend([data.nodo_principal.lat, data.nodo_principal.lng]);
-
-            // Crear círculo de 100km
-            const circle = L.circle(
-                [data.nodo_principal.lat, data.nodo_principal.lng], 
-                {
-                    color: '#27ae60',
-                    fillColor: '#27ae60',
-                    fillOpacity: 0.1,
-                    radius: 100000 // 100km en metros
-                }
-            ).addTo(map);
-
-            markers.push(circle);
-
-            // Agregar marcadores secundarios y rutas
-            data.rutas.forEach((rutaData, index) => {
-                const destino = rutaData.destino;
-                const ruta = rutaData.ruta;
-
-                // Crear marcador secundario
-                const secundarioIcon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `
-                        <div class="marker-pin secondary-marker">
-                            <div style="
-                                position: absolute;
-                                top: 50%;
-                                left: 50%;
-                                transform: translate(-50%, -50%) rotate(45deg);
-                                color: white;
-                                font-weight: bold;
-                                font-size: 12px;
-                            ">${index + 1}</div>
-                        </div>
-                    `,
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                });
-
-                const secundarioMarker = L.marker(
-                    [destino.lat, destino.lng], 
-                    { icon: secundarioIcon }
-                ).addTo(map);
-
-                secundarioMarker.bindPopup(`
-                    <div style="padding: 15px;">
-                        <h4>🎯 Destino ${index + 1}</h4>
-                        <hr style="margin: 10px 0;">
-                        <p><strong>🛣️ Distancia:</strong> ${ruta.distancia.text}</p>
-                        <p><strong>⏱️ Tiempo:</strong> ${ruta.duracion.text}</p>
-                        <p><strong>📍 Coordenadas:</strong><br>${destino.lat.toFixed(4)}, ${destino.lng.toFixed(4)}</p>
-                        <p><strong>📏 Línea recta:</strong> ${destino.distancia_directa} km</p>
-                    </div>
-                `);
-
-                markers.push(secundarioMarker);
-                bounds.extend([destino.lat, destino.lng]);
-
-                // Dibujar ruta
-                if (ruta.puntos_ruta && ruta.puntos_ruta.length > 0) {
-                    const routePoints = ruta.puntos_ruta.map(punto => [punto.lat, punto.lng]);
-                    
-                    const polyline = L.polyline(routePoints, {
-                        color: getRouteColor(index),
-                        weight: 4,
-                        opacity: 0.8,
-                        dashArray: index % 2 === 0 ? null : '10, 5'
-                    }).addTo(map);
-
-                    polyline.bindPopup(`
-                        <div style="text-align: center;">
-                            <h4>Ruta ${index + 1}</h4>
-                            <p>${ruta.distancia.text} - ${ruta.duracion.text}</p>
-                        </div>
-                    `);
-
-                    routes.push(polyline);
-                } else {
-                    // Línea recta como fallback
-                    const straightLine = L.polyline([
-                        [data.nodo_principal.lat, data.nodo_principal.lng],
-                        [destino.lat, destino.lng]
-                    ], {
-                        color: getRouteColor(index),
-                        weight: 3,
-                        opacity: 0.6,
-                        dashArray: '15, 10'
-                    }).addTo(map);
-
-                    routes.push(straightLine);
-                }
-            });
-
-            // Ajustar vista del mapa
-            map.fitBounds(bounds, { padding: [20, 20] });
-        }
-
-        // Obtener color para la ruta
-        function getRouteColor(index) {
-            const colors = [
-                '#e74c3c', '#3498db', '#f39c12', '#27ae60', '#9b59b6',
-                '#e67e22', '#1abc9c', '#34495e', '#f1c40f', '#95a5a6',
-                '#e91e63', '#ff5722', '#607d8b', '#795548', '#009688'
-            ];
-            return colors[index % colors.length];
-        }
-
-        // Actualizar estadísticas
-        function actualizarEstadisticas(data) {
-            const statsDiv = document.getElementById('stats');
-            
-            let distanciaTotal = 0;
-            let tiempoTotal = 0;
-            let rutaMasLarga = 0;
-
-            data.rutas.forEach(rutaData => {
-                const ruta = rutaData.ruta;
-                const distanciaKm = ruta.distancia.value / 1000;
-                const tiempoMin = ruta.duracion.value / 60;
-                
-                distanciaTotal += distanciaKm;
-                tiempoTotal += tiempoMin;
-                
-                if (distanciaKm > rutaMasLarga) {
-                    rutaMasLarga = distanciaKm;
-                }
-            });
-
-            document.getElementById('total-nodos').textContent = data.rutas.length;
-            document.getElementById('distancia-total').textContent = distanciaTotal.toFixed(1) + ' km';
-            document.getElementById('tiempo-total').textContent = Math.round(tiempoTotal) + ' min';
-            document.getElementById('ruta-mas-larga').textContent = rutaMasLarga.toFixed(1) + ' km';
-
-            // Animación de aparición
-            statsDiv.style.display = 'block';
-            statsDiv.style.opacity = '0';
-            setTimeout(() => {
-                statsDiv.style.transition = 'opacity 0.5s ease';
-                statsDiv.style.opacity = '1';
-            }, 100);
-        }
-
-        // Inicializar al cargar la página
-        document.addEventListener('DOMContentLoaded', function() {
-            initMap();
-        });
-
-        // Función para descargar datos (bonus feature)
-        function descargarDatos() {
-            if (!currentData) {
-                showError('No hay datos para descargar. Genera un mapa primero.');
-                return;
-            }
-
-            const dataStr = JSON.stringify(currentData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `rutas_${document.getElementById('estado').value}_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-        }
-    </script>
+    <!-- Scripts modulares -->
+    <script src="/static/js/map-manager.js"></script>
+    <script src="/static/js/route-manager.js"></script>
+    <script src="/static/js/ui-manager.js"></script>
+    <script src="/static/js/api-client.js"></script>
+    <script src="/static/js/main.js"></script>
 </body>
 </html>
