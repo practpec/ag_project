@@ -1,93 +1,18 @@
 {
-  "individuo_id": "individuo_001",
  
   "vehiculos": [
     {
-      "vehiculo_id": "vehiculo_1",
-      "modelo": "Corolla",
-      "tipo": "auto",
-      "capacidad_kg": 1200,
-      "ruta_asignada": [
-        {
-          "origen": "Ubicacion1",
-          "destino": "Ubicacion2",
-          "distancia_km": 100
-        }
+      "vehiculo_id": 1,
+      "detalles": "traesr del json de vehiculo",
+      "destino":"id de algun destino de los destinos de ejemplos",
+      "rutas_para_este_destino": [
+        {"id_ruta":"ids de las rutas para ese destino"}
       ],
-      "destino_final": "Ubicacion2",
-      "insumos_transportados": [
-        {
-          "tipo": "Alimentación básica",
-          "cantidad": 80,
-          "peso_total_kg": 800
-        },
-        {
-          "tipo": "Higiene",
-          "cantidad": 50,
-          "peso_total_kg": 250
-        }
-      ],
-      "peso_total_kg": 1050
-    },
-    {
-      "vehiculo_id": "vehiculo_2",
-      "modelo": "Hilux",
-      "tipo": "camioneta",
-      "capacidad_kg": 1500,
-      "ruta_asignada": [
-        {
-          "origen": "Ubicacion1",
-          "destino": "Ubicacion2",
-          "distancia_km": 100
-        },
-        {
-          "origen": "Ubicacion2",
-          "destino": "Ubicacion3",
-          "distancia_km": 60
-        }
-      ],
-      "destino_final": "Ubicacion3",
-      "insumos_transportados": [
-        {
-          "tipo": "Artículos para refugio",
-          "cantidad": 100,
-          "peso_total_kg": 1000
-        },
-        {
-          "tipo": "Equipamiento",
-          "cantidad": 30,
-          "peso_total_kg": 440
-        }
-      ],
-      "peso_total_kg": 1440
-    },
-    {
-      "vehiculo_id": "vehiculo_3",
-      "modelo": "Sprinter",
-      "tipo": "van",
-      "capacidad_kg": 1300,
-      "ruta_asignada": [
-        {
-          "origen": "Ubicacion1",
-          "destino": "Ubicacion4",
-          "distancia_km": 80
-        }
-      ],
-      "destino_final": "Ubicacion4",
-      "insumos_transportados": [
-        {
-          "tipo": "Medicamentos",
-          "cantidad": 60,
-          "peso_total_kg": 300
-        },
-        {
-          "tipo": "Alimentación básica",
-          "cantidad": 80,
-          "peso_total_kg": 740
-        }
-      ],
-      "peso_total_kg": 1040
-    }
-  ],
-  "aptitud_total": 0.92
+      "insumos":[
+        {"insumo":"nombre del isnumo dependiendo de la prioridad segun el desastre",
+        "cantidad": 10,
+        "peso_kg":90}
+      ]
+      }
+    ]
 }

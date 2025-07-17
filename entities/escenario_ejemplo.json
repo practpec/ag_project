@@ -1,0 +1,19 @@
+{
+  "punto_partida": "Chiapas",
+  "tipo_desastre": "incendio",
+  "ubicaciones_afectadas": [
+    "Ubicacion1",
+    "Ubicacion2",
+    "Ubicacion3",
+    "Ubicacion4"
+  ],
+  "rutas_estado": [
+    { "destino_id": "Ubicacion1", "ruta_id": "Ruta1 para ubicacion 1", "estado": "abierta", "vehiculos_permitidos": ["camion", "auto"] },
+    { "destino_id": "Ubicacion2", "ruta_id": "Ruta1 para ubicacion 2", "estado": "abierta", "vehiculos_permitidos": ["van", "auto"] },
+    { "destino_id": "Ubicacion3", "ruta_id": "Ruta1 para ubicacion 3", "estado": "cerrada", "vehiculos_permitidos": ["camion"] },
+    { "destino_id": "Ubicacion3", "ruta_id": "Ruta3 para ubicacion 3", "estado": "abierta", "vehiculos_permitidos": ["camion", "van"] },
+    { "destino_id": "Ubicacion4", "ruta_id": "Ruta1 para ubicacion 4", "estado": "abierta", "vehiculos_permitidos": ["auto"] }
+
+  ]
+ 
+}

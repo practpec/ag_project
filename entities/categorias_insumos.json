@@ -57,5 +57,13 @@
       "Material de embalaje"
     ],
     "peso_unitario_kg": 6
+  },
+  {
+    "categoria": "Agua",
+    "subcategorias": [
+      "Botellas de agua potable",
+      "Garrafones y bidones"
+    ],
+    "peso_unitario_kg": 15
   }
 ]
