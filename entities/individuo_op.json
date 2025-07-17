@@ -1,0 +1,64 @@
+{
+ "poblacion": [
+   {
+     "individuo_id": 1,
+     "vehiculos": [
+       {
+         "vehiculo_id": 1,
+         "id_destino_ruta": 1,
+         "insumos": [5, 3, 2, 1, 0, 2, 4]
+       },
+       {
+         "vehiculo_id": 2,
+         "id_destino_ruta": 3,
+         "insumos": [8, 4, 3, 2, 1, 3, 6]
+       },
+       {
+         "vehiculo_id": 3,
+         "id_destino_ruta": 4,
+         "insumos": [6, 2, 4, 3, 2, 1, 5]
+       }
+     ]
+   },
+   {
+     "individuo_id": 2,
+     "vehiculos": [
+       {
+         "vehiculo_id": 1,
+         "id_destino_ruta": 2,
+         "insumos": [7, 5, 1, 2, 3, 4, 3]
+       },
+       {
+         "vehiculo_id": 2,
+         "id_destino_ruta": 1,
+         "insumos": [4, 6, 5, 1, 0, 2, 8]
+       },
+       {
+         "vehiculo_id": 3,
+         "id_destino_ruta": 3,
+         "insumos": [9, 3, 2, 4, 1, 1, 2]
+       }
+     ]
+   },
+   {
+     "individuo_id": 3,
+     "vehiculos": [
+       {
+         "vehiculo_id": 1,
+         "id_destino_ruta": 4,
+         "insumos": [3, 7, 4, 5, 2, 0, 6]
+       },
+       {
+         "vehiculo_id": 2,
+         "id_destino_ruta": 2,
+         "insumos": [2, 1, 6, 3, 4, 5, 1]
+       },
+       {
+         "vehiculo_id": 3,
+         "id_destino_ruta": 1,
+         "insumos": [8, 2, 3, 1, 5, 4, 7]
+       }
+     ]
+   }
+ ]
+}

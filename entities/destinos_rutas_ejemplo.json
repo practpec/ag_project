@@ -1,35 +1,28 @@
 [
-  {
-    "id": "Ubicacion1",
-    "destino":"primer destino",
-    "rutas_unicas_de_esta_ubicacion": [
-      { "id": "Ruta1 para ubicacion 1", "distancia_km": 25 },
-      { "id": "Ruta2 para ubicacion 1", "distancia_km": 40 },
-      { "id": "Ruta3 para ubicacion 1", "distancia_km": 60 }
+  [
+    {
+      "id_destino_ruta":1,
+      "salida":"salida unica",
+      "destino":"destino1",
+      "distancia_km":25
+      },
+      {
+        "id_destino_ruta":2,
+        "salida":"salida unica",
+        "destino":"destino1",
+        "distancia_km":30
+      },
+      {
+      "id_destino_ruta":3,
+      "salida":"salida unica",
+      "destino":"destino2",
+      "distancia_km":40
+      },
+      {
+        "id_destino_ruta":4,
+        "salida":"salida unica",
+        "destino":"destino3",
+        "distancia_km":50
+      }
     ]
-  },
-  {
-    "id": "Ubicacion2",
-    "destino":"segundo destino",
-    "rutas_unicas_de_esta_ubicacion": [
-      { "id": "Ruta1 para ubicacion 2", "distancia_km": 30 },
-      { "id": "Ruta2 para ubicacion 2", "distancia_km": 45 }
-    ]
-  },
-  {
-    "id": "Ubicacion3",
-    "destino":"tercer destino",
-    "rutas_unicas_de_esta_ubicacion": [
-      { "id": "Ruta1 para ubicacion 3", "distancia_km": 35 },
-      { "id": "Ruta2 para ubicacion 3", "distancia_km": 55 },
-      { "id": "Ruta3 para ubicacion 3", "distancia_km": 70 }
-    ]
-  },
-  {
-    "id": "Ubicacion4",
-    "destino":"cuarto destino",
-    "rutas_unicas_de_esta_ubicacion": [
-      { "id": "Ruta1 para ubicacion 4", "distancia_km": 50 }
-    ]
-  }
 ]
